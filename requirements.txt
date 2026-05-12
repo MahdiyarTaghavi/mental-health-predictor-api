@@ -1,0 +1,10 @@
+pandas
+scikit-learn
+xgboost
+joblib
+fastapi
+uvicorn
+python-multipart
+pillow
+numpy
+deepface
