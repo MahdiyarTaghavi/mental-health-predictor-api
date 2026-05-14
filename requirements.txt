@@ -8,3 +8,4 @@ python-multipart
 pillow
 numpy
 deepface
+shap

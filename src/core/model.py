@@ -1,6 +1,9 @@
 import os
+
+import shap
 import joblib
 import pandas as pd
+import numpy as np
 from pathlib import Path
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,6 +17,13 @@ feature_names = _bundle["feature_names"]
 feature_importance = _bundle["feature_importance"]
 model_name = _bundle["model_name"]
 auc = _bundle["auc"]
+
+# TreeExplainer works with XGBoost and Random Forest
+# For Logistic Regression it falls back to LinearExplainer
+if hasattr(model, "feature_importances_"):
+    explainer = shap.TreeExplainer(model)
+else:
+    explainer = shap.LinearExplainer(model, masker=shap.maskers.Independent(data=None))
 
 
 def predict(input_data: dict) -> dict:
@@ -38,16 +48,43 @@ def predict(input_data: dict) -> dict:
     prediction = int(model.predict(X)[0])
     confidence = float(model.predict_proba(X)[0][prediction])
 
-    # Return top 5 features that most influenced this prediction
-    top_features = sorted(
-        feature_importance.items(), key=lambda x: x[1], reverse=True
+    # SHAP — per-prediction explanation
+    shap_values = explainer.shap_values(X)
+    values = shap_values[0, :, 1]
+
+    shap_contributions = {
+        feat: round(float(val), 4)
+        for feat, val in zip(feature_names, values)
+    }
+
+    shap_sorted = sorted(
+        shap_contributions.items(),
+        key=lambda x: abs(x[1]),
+        reverse=True
+    )
+
+    global_top = sorted(
+        feature_importance.items(),
+        key=lambda x: x[1],
+        reverse=True
     )[:5]
 
+    # SHAP baseline — average model output across training data
+    expected = explainer.expected_value
+    baseline = float(expected[1] if isinstance(expected, (list, np.ndarray)) else expected)
+
     return {
-        "prediction": prediction,                          # 0 = unlikely, 1 = likely to seek treatment
+        "prediction": prediction,
         "label": "Likely to seek treatment" if prediction == 1 else "Unlikely to seek treatment",
-        "confidence": round(confidence * 100, 1),          # e.g. 78.3
-        "top_influential_features": [f for f, _ in top_features],
+        "confidence": round(confidence * 100, 1),
         "model_used": model_name,
         "model_auc": round(auc, 4),
+        "top_global_influential_features": [f for f, _ in global_top],
+        "shap_explanation": {
+            "baseline": round(baseline, 4),
+            "top_contributors": [
+                {"feature": f, "contribution": v}
+                for f, v in shap_sorted[:5]
+            ]
+        }
     }
