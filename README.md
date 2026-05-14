@@ -23,6 +23,16 @@ Survey Input → ML Model (XGBoost/Random Forest) → Prediction + Confidence + 
 Image Input  → Face Detection → Emotion Classification → Dominant Emotion + Mental Health Note
 ---
 
+## Explainability — SHAP
+
+The `/predict` endpoint uses **SHAP (SHapley Additive exPlanations)** to explain every individual prediction. Unlike global feature importance — which shows what the model relies on across all predictions on average — SHAP shows exactly how each input feature pushed the prediction up or down for a specific person.
+
+- **Baseline** — the average prediction across the training dataset (starting point)
+- **Positive contribution** — pushed the prediction toward "likely to seek treatment"
+- **Negative contribution** — pushed the prediction against it
+
+---
+
 ## Computer Vision Approach
 
 The emotion detection endpoint uses **DeepFace**, a purpose-built facial analysis library used in CV and biometrics research. Unlike generic image classifiers, DeepFace runs a dedicated two-stage CV pipeline internally:
