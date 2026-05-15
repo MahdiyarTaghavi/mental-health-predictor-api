@@ -9,3 +9,5 @@ pillow
 numpy
 deepface
 shap
+pytest
+httpx

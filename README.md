@@ -43,6 +43,21 @@ The emotion detection endpoint uses **DeepFace**, a purpose-built facial analysi
 This multimodal design means the API can assess mental health indicators from both structured survey data and unstructured visual input — two fundamentally different signal types.
 
 ---
+## Tests
+
+The project includes a test suite covering both the API endpoints and the core prediction logic.
+
+### Running the tests
+
+```bash
+pytest tests/ -v
+```
+
+### What is tested
+
+**Endpoint tests** (`tests/test_endpoints.py`) — integration tests that send real HTTP requests to the API and verify response status codes and response structure:
+
+**Core tests** (`tests/test_core.py`) — unit tests that call the prediction function directly, bypassing the API layer:
 
 ## Setup
 
