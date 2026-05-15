@@ -1,5 +1,5 @@
 .idea/
 env/
-src/data
-src/models
+/training_data
+/models
 /logs

@@ -1,12 +1,12 @@
 import os
+from pathlib import Path
 
 import shap
 import joblib
 import pandas as pd
 import numpy as np
-from pathlib import Path
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parents[2]
 _MODEL_PATH = Path(os.path.join(BASE_DIR, "models", "model.pkl"))
 
 # Load once at import time — FastAPI will reuse this across requests

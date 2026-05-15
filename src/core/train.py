@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import joblib
@@ -13,10 +15,10 @@ from sklearn.metrics import (
 )
 from xgboost import XGBClassifier
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 # Phase 1. Load the data
-df = pd.read_csv(os.path.join(BASE_DIR, "data", "survey.csv"))
+df = pd.read_csv(os.path.join(BASE_DIR, "training_data", "survey.csv"))
 print(f"Dataset shape: {df.shape}")
 
 # Phase 2. Clean the data
