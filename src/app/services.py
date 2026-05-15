@@ -4,6 +4,7 @@ from fastapi import File, UploadFile
 from src.core.model import predict, model_name, auc, feature_importance
 from src.core.vision import analyze_emotion
 from src.app.schemas import PredictRequest
+from src.utils.loggings.logger import app_log as log
 
 async def model_info_service():
     top_features = sorted(
@@ -24,7 +25,7 @@ async def predict_service(request: PredictRequest):
         result = predict(request.model_dump())
         return result
     except Exception as e:
-        print(f"Error during prediction: {e}")
+        log.error(f"Error during prediction: {e}")
         raise HTTPException(status_code=500, detail="Something went wrong during prediction. Try again later.")
 
 async def analyze_emotion_service(file: UploadFile = File(...)):
@@ -50,5 +51,5 @@ async def analyze_emotion_service(file: UploadFile = File(...)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error during prediction: {e}")
+        log.error(f"Error during prediction: {e}")
         raise HTTPException(status_code=500, detail="Something went wrong during prediction. Try again later.")
