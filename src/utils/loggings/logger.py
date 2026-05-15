@@ -1,9 +1,9 @@
-import os
 import logging.config
+from pathlib import Path
 
 from src.utils.loggings.logging_handlers import StructuredLogger
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parents[3]   # src/utils → src → project root
 
 LOGGING_CONFIG = {
     "version": 1,
