@@ -1,16 +1,14 @@
 import logging.config
-from pathlib import Path
 
-from src.utils.loggings.logging_handlers import StructuredLogger
+from utils.loggings.logging_handlers import StructuredLogger
 
-BASE_DIR = Path(__file__).resolve().parents[3]   # src/utils → src → project root
 
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "json": {
-            "()": "src.utils.loggings.logging_handlers.JSONFormatter"
+            "()": "utils.loggings.logging_handlers.JSONFormatter"
         }
     },
     "handlers": {
@@ -20,11 +18,10 @@ LOGGING_CONFIG = {
             "formatter": "json",
         },
         "app": {
-            "class": "src.utils.loggings.logging_handlers.DailyRotatingFileHandler",
+            "class": "utils.loggings.logging_handlers.DailyRotatingFileHandler",
             "level": "DEBUG",
             "formatter": "json",
-            "base_dir": f"{BASE_DIR}/logs",
-            # "base_dir": "/var/logs",
+            "base_dir": "/var/logs/mental-health-predictor",
             "service_name": "app",
             "backupCount": 100,
         },

@@ -1,10 +1,10 @@
 from fastapi import HTTPException
 from fastapi import File, UploadFile
 
-from src.core.model import predict, model_name, auc, feature_importance
-from src.core.vision import analyze_emotion
-from src.app.schemas import PredictRequest
-from src.utils.loggings.logger import app_log as log
+from core.model import predict, model_name, auc, feature_importance
+from core.vision import analyze_emotion
+from app.schemas import PredictRequest
+from utils.loggings.logger import app_log as log
 
 async def model_info_service():
     top_features = sorted(

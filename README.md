@@ -67,28 +67,34 @@ git clone https://github.com/MahdiyarTaghavi/mental-health-predictor-api.git
 cd mental-health-predictor-api
 ```
 
-### 2. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Download the dataset
+### 2. Download the dataset
 The dataset is not included due to Kaggle's licensing terms.
 
 1. Go to 👉 https://www.kaggle.com/datasets/osmi/mental-health-in-tech-survey
 2. Click **Download** (free Kaggle account required)
-3. Extract the zip and place `survey.csv` inside the `data/` folder
+3. Create a `training_data/` folder in the project root
+4. Extract the zip and place `survey.csv` inside it
 
-### 4. Train the model
-```bash
-python core/train.py
 ```
-Compares three models (Logistic Regression, Random Forest, XGBoost), picks the best one by AUC score, and saves it to `models/model.pkl`.
+mental-health-predictor-api/
+└── training_data/
+    └── survey.csv
+```
 
-### 5. Run the server
+### 3. Build the Docker image
 ```bash
-uvicorn src.main:app --reload --reload-dir src
+docker build -t mental-health-predictor .
 ```
+
+### 4. Run with Docker
+```bash
+docker compose -f docker-compose.yml up
+```
+
+This will:
+1. Train the model automatically and save it to `models/`
+2. Start the API server
+
 Server runs at **http://localhost:8000**
 Interactive docs at **http://localhost:8000/docs**
 

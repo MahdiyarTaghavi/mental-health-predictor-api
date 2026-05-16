@@ -7,7 +7,7 @@ from datetime import datetime
 from glob import glob
 from typing import Any
 
-from src.utils.loggings.logging_context import request_context
+from utils.loggings.logging_context import request_context
 
 # -------- Daily Rotating Handler --------
 class DailyRotatingFileHandler(logging.FileHandler):

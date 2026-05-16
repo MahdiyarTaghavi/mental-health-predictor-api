@@ -1,0 +1,26 @@
+services:
+  train:
+    image: mental-health-predictor
+    working_dir: /app
+    command: python src/core/train.py
+    volumes:
+      - ./src:/app/src
+      - ./training_data:/app/training_data
+      - ./models:/app/models
+    restart: "no"
+
+  mental-health-predictor-backend:
+    image: mental-health-predictor
+    container_name: mental-health-predictor-backend
+    command: uvicorn main:app --host 0.0.0.0 --reload --proxy-headers
+    ports:
+      - "8000:8000"
+    working_dir: /app/src
+    volumes:
+      - ./src:/app/src
+      - ./training_data:/app/training_data
+      - ./models:/app/models
+      - ./logs:/var/logs/mental-health-predictor
+    depends_on:
+      train:
+        condition: service_completed_successfully

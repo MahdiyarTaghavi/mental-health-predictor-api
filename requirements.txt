@@ -11,3 +11,4 @@ deepface
 shap
 pytest
 httpx
+tf-keras

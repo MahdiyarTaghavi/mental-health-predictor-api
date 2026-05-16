@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 
-from src.app.router import app_router
+from app.router import app_router
+
 app = FastAPI(
     title="Mental Health in Tech — Predictor API",
     description="Predicts whether a tech worker is likely to seek mental health treatment based on workplace and personal factors.",
