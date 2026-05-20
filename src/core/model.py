@@ -1,5 +1,8 @@
 import os
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import shap
 import joblib
@@ -20,10 +23,24 @@ auc = _bundle["auc"]
 
 # TreeExplainer works with XGBoost and Random Forest
 # For Logistic Regression it falls back to LinearExplainer
+# Background data for SHAP (small sample is enough)
+background = np.zeros((1, len(feature_names)))
+
 if hasattr(model, "feature_importances_"):
+    # Random Forest, XGBoost, Decision Tree
     explainer = shap.TreeExplainer(model)
+elif hasattr(model, "coef_"):
+    # Logistic Regression (sklearn)
+    explainer = shap.LinearExplainer(model, masker=shap.maskers.Independent(data=background))
+elif hasattr(model, "trees"):
+    # ManualBaggingClassifier: use KernelExplainer with background data
+    explainer = shap.KernelExplainer(model.predict_proba, background)
 else:
-    explainer = shap.LinearExplainer(model, masker=shap.maskers.Independent(data=None))
+    explainer = shap.KernelExplainer(model.predict_proba, background)
+# if hasattr(model, "feature_importances_"):
+#     explainer = shap.TreeExplainer(model)
+# else:
+#     explainer = shap.LinearExplainer(model, masker=shap.maskers.Independent(data=None))
 
 
 def predict(input_data: dict) -> dict:
