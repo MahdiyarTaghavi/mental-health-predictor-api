@@ -17,6 +17,7 @@ from sklearn.metrics import (
 from xgboost import XGBClassifier
 
 from models.linear_model.logistic_regression import LogisticRegression
+from cross_validation import cross_validate
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -91,18 +92,29 @@ X_test_scaled = scaler.transform(X_test)
 results = {}
 for name, model in models.items():
 
-    # Logistic Regression scratch needs scaled data (it has no internal scaling)
-    # Tree-based models are scale-invariant so raw data is fine
+    # Logistic Regression needs scaled data — tree models are scale-invariant
     if isinstance(model, LogisticRegression):
         X_tr = X_train_scaled
         X_te = X_test_scaled
+        X_cv = X_train_scaled  # use scaled version for cross-validation too
     else:
         X_tr = X_train
         X_te = X_test
+        X_cv = X_train
 
+    # Cross-Validation
+    cv_scores = cross_validate(model, X_cv, y_train, k=5)
+    cv_mean = cv_scores.mean()
+    cv_std = cv_scores.std()
+
+    # Final fit on full training set
+    # Final fit on the FULL training set — cross_validate leaves the model
+    # trained on only k-1 folds. We refit here to use all available data
+    # before evaluating on the held-out test set.
     model.fit(X_tr, y_train)
 
-    # Training AUC — shows overfitting when much higher than test AUC
+    # Training AUC: shows overfitting when much higher than test AUC
+    # Decision Tree intentionally left untuned to expose this gap
     y_train_prob = model.predict_proba(X_tr)[:, 1]
     train_auc = roc_auc_score(y_train, y_train_prob)
 
@@ -110,15 +122,25 @@ for name, model in models.items():
     y_prob = model.predict_proba(X_te)[:, 1]
     test_auc = roc_auc_score(y_test, y_prob)
 
-    results[name] = {"model": model, "auc": test_auc, "train_auc": train_auc}
+    results[name] = {
+        "model": model,
+        "train_auc": train_auc,
+        "test_auc": test_auc,
+        "cv_mean": cv_mean,
+        "cv_std": cv_std,
+    }
+
     print(f"\n{'─' * 40}")
-    print(f"  {name}  |  Train AUC: {train_auc:.4f}  |  Test AUC: {test_auc:.4f}")
+    print(f"  {name}")
+    print(f"  Train AUC : {train_auc:.4f}  (gap proves overfitting if >> CV AUC)")
+    print(f"  CV AUC    : {cv_mean:.4f} ± {cv_std:.4f}")
+    print(f"  Test AUC  : {test_auc:.4f}")
     print(classification_report(y_test, y_pred))
 
 # Phase 6. Pick the Best Model
-best_name = max(results, key=lambda k: results[k]["auc"])
+best_name = max(results, key=lambda k: results[k]["test_auc"])
 best_model = results[best_name]["model"]
-print(f"\n✓ Best model: {best_name}  (AUC {results[best_name]['auc']:.4f})")
+print(f"\n✓ Best model: {best_name}  (AUC {results[best_name]["test_auc"]:.4f})")
 
 # Phase 7. Feature Importance (for the /predict API response)
 if hasattr(best_model, "feature_importances_"):
@@ -143,7 +165,7 @@ joblib.dump(
         "encoders": encoders,
         "feature_names": X.columns.tolist(),
         "feature_importance": feature_importance,
-        "auc": results[best_name]["auc"],
+        "auc": results[best_name]["test_auc"],
     },
     os.path.join(BASE_DIR, "models", "model.pkl"),
 )
