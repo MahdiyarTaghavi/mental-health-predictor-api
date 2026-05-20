@@ -8,7 +8,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import pandas as pd
 import numpy as np
 import joblib
-import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
@@ -28,7 +27,7 @@ from tunings.tuning import tune_all
 from plots import plot_all
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-
+RANDOM_SEED = 42
 
 
 def _normalize_gender(g: str) -> Literal["Male", "Female", "Other"]:
@@ -147,7 +146,7 @@ def _pick_the_best_model(models: dict) -> Tuple[str, dict]:
 if __name__ == "__main__":
 
     # Phase 1. Load the data
-    df = pd.read_csv(os.path.join(BASE_DIR, "training_data", "survey.csv"))
+    df = pd.read_csv(BASE_DIR / "training_data" / "survey.csv")
     print(f"Dataset shape: {df.shape}")
 
     # Phase 2. Clean the data
@@ -182,21 +181,21 @@ if __name__ == "__main__":
     y = df["treatment"]
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
+        X, y, test_size=0.2, random_state=RANDOM_SEED, stratify=y
     )
 
     # Phase 5. Train & Compare Three Models
     models = {
         "Logistic Regression": LogisticRegression(learning_rate=0.01, epochs=1000),
-        "Decision Tree": DecisionTreeClassifier(random_state=42),     # Intentionally untuned — default max_depth=None causes overfitting
-        "Random Forest": RandomForestClassifier(n_estimators=200, random_state=42),
+        "Decision Tree": DecisionTreeClassifier(random_state=RANDOM_SEED),     # Intentionally untuned — default max_depth=None causes overfitting
+        "Random Forest": RandomForestClassifier(n_estimators=200, random_state=RANDOM_SEED),
         "XGBoost": XGBClassifier(
             n_estimators=200,
             learning_rate=0.05,
             eval_metric="logloss",
-            random_state=42,
+            random_state=RANDOM_SEED,
         ),
-        "Manual Bagging": ManualBaggingClassifier(n_estimators=100, random_state=42),
+        "Manual Bagging": ManualBaggingClassifier(n_estimators=100, random_state=RANDOM_SEED),
     }
 
     results = _train_all(models, X_train, X_test, y_train, y_test)
@@ -243,7 +242,7 @@ if __name__ == "__main__":
         print(f"  {feat}: {score:.4f}")
 
     # Phase 8. Save Everything the API Needs
-    os.makedirs(os.path.join(BASE_DIR, "models"), exist_ok=True)
+    (BASE_DIR / "models").mkdir(exist_ok=True)
 
     joblib.dump(
         {
@@ -254,7 +253,7 @@ if __name__ == "__main__":
             "feature_importance": feature_importance,
             "auc": results[best_name]["test_auc"],
         },
-        os.path.join(BASE_DIR, "models", "model.pkl"),
+        BASE_DIR / "models" / "model.pkl"
     )
 
     print("\n✓ Saved to models/model.pkl — ready for the API.")
