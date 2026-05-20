@@ -30,6 +30,63 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 RANDOM_SEED = 42
 
 
+def _clean_dataset() -> Tuple[pd.DataFrame, pd.Series, dict]:
+    """
+        Load, clean, encode, and split the survey dataset into features and target.
+
+        Drops irrelevant columns, normalizes free-text gender entries into three
+        buckets, filters unrealistic ages, and label-encodes all categorical
+        columns. Encoders are saved so the API can encode user input identically
+        at inference time.
+
+        Returns
+        -------
+        X : pd.DataFrame
+            Encoded feature matrix of shape (n_samples, n_features).
+        y : pd.Series
+            Binary target labels of shape (n_samples,) where 1 indicates
+            the respondent sought mental health treatment.
+        encoders : dict
+            Dictionary mapping categorical column names to their fitted
+            LabelEncoder instances.
+    """
+    # Phase 1. Load the data
+    df = pd.read_csv(BASE_DIR / "training_data" / "survey.csv")
+    print(f"Dataset shape: {df.shape}")
+
+    # Phase 2. Clean the data
+
+    # These columns are either irrelevant or mostly empty — no point keeping them
+    df.drop(columns=["Timestamp", "comments", "state", "Country"], inplace=True)
+
+    # This is what we're trying to predict: did the person seek treatment?
+    # Convert 'Yes'/'No' to 1/0 so the model can work with it
+    df["treatment"] = (df["treatment"] == "Yes").astype(int)
+
+    df["Gender"] = df["Gender"].apply(_normalize_gender)
+
+    # Some respondents entered unrealistic ages like 5 or 999 — filter those out
+    df = df[(df["Age"] >= 18) & (df["Age"] <= 75)]
+
+    # Phase 3. Feature Engineering
+
+    # All remaining categorical columns
+    cat_cols = df.select_dtypes(include="str").columns.tolist()
+
+    # Models only understand numbers, not text
+    # LabelEncoder converts each category to an integer — simple and works well with tree models
+    encoders = {}
+    for col in cat_cols:
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col].astype(str))
+        encoders[col] = le  # save so the API can encode user input identically
+
+    # Phase 4. Split
+    X = df.drop(columns=["treatment"])
+    y = df["treatment"]
+
+    return X, y, encoders
+
 def _normalize_gender(g: str) -> Literal["Male", "Female", "Other"]:
     """
     The gender field is free text: people wrote everything from 'male' to 'Male' to 'm'
@@ -144,41 +201,7 @@ def _pick_the_best_model(models: dict) -> Tuple[str, dict]:
     return best_name, best_model
 
 if __name__ == "__main__":
-
-    # Phase 1. Load the data
-    df = pd.read_csv(BASE_DIR / "training_data" / "survey.csv")
-    print(f"Dataset shape: {df.shape}")
-
-    # Phase 2. Clean the data
-
-    # These columns are either irrelevant or mostly empty — no point keeping them
-    df.drop(columns=["Timestamp", "comments", "state", "Country"], inplace=True)
-
-    # This is what we're trying to predict: did the person seek treatment?
-    # Convert 'Yes'/'No' to 1/0 so the model can work with it
-    df["treatment"] = (df["treatment"] == "Yes").astype(int)
-
-    df["Gender"] = df["Gender"].apply(_normalize_gender)
-
-    # Some respondents entered unrealistic ages like 5 or 999 — filter those out
-    df = df[(df["Age"] >= 18) & (df["Age"] <= 75)]
-
-    # Phase 3. Feature Engineering
-
-    # All remaining categorical columns
-    cat_cols = df.select_dtypes(include="str").columns.tolist()
-
-    # Models only understand numbers, not text
-    # LabelEncoder converts each category to an integer — simple and works well with tree models
-    encoders = {}
-    for col in cat_cols:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col].astype(str))
-        encoders[col] = le  # save so the API can encode user input identically
-
-    # Phase 4. Split
-    X = df.drop(columns=["treatment"])
-    y = df["treatment"]
+    X, y, encoders = _clean_dataset()
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=RANDOM_SEED, stratify=y
