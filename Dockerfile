@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt -i https://package-mirror.liara.ir/repository/pypi/simple --trusted-host package-mirror.liara.ir
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the project
 COPY ./src ./src
