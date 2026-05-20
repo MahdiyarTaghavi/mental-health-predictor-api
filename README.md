@@ -11,21 +11,65 @@ Built with **Python**, **scikit-learn**, **XGBoost**, **FastAPI**, and **DeepFac
 This project combines two AI approaches to mental health assessment:
 
 **1. Survey-based Prediction**
-Takes workplace and personal factors as input (company size, mental health benefits, family history, etc.) and predicts whether a tech worker is likely to seek mental health treatment. Returns a prediction, confidence score, and the most influential features that drove the result.
+Takes workplace and personal factors as input (company size, mental health
+benefits, family history, etc.) and predicts whether a tech worker is likely
+to seek mental health treatment. Returns a prediction, confidence score, and
+the most influential features that drove the result.
+
+Five models are trained and compared:
+- Logistic Regression — implemented from scratch using gradient descent
+- Decision Tree: intentionally untuned to demonstrate overfitting
+- Random Forest: bagging ensemble, sklearn baseline
+- XGBoost: boosting ensemble, sklearn baseline
+- Manual Bagging: bagging ensemble implemented from scratch
+
+The best performing model is automatically selected and saved.
+Training includes manual k-fold cross-validation and randomized
+hyperparameter tuning, both implemented from scratch.
 
 **2. Facial Emotion Detection**
-Accepts a facial image and detects the dominant emotional state using a two-stage computer vision pipeline: face detection followed by emotion classification. Maps the detected emotion to a mental health relevance note.
+Accepts a facial image and detects the dominant emotional state using a
+two-stage computer vision pipeline: face detection followed by emotion
+classification. Maps the detected emotion to a mental health relevance note.
 
 ---
 
 ## Architecture
-Survey Input → ML Model (XGBoost/Random Forest) → Prediction + Confidence + Feature Importance
-Image Input  → Face Detection → Emotion Classification → Dominant Emotion + Mental Health Note
+```text
+Survey Input
+    ↓
+Data Cleaning
+    ↓
+Feature Encoding
+    ↓
+Model Training (5 models)
+    ↓
+Cross-Validation
+    ↓
+Hyperparameter Tuning
+    ↓
+Best Model
+    ↓
+Prediction + Confidence + SHAP Explanation
+
+
+Image Input
+    ↓
+Face Detection
+    ↓
+Emotion Classification
+    ↓
+Dominant Emotion + Mental Health Note
+```
 ---
 
 ## Explainability — SHAP
 
-The `/predict` endpoint uses **SHAP (SHapley Additive exPlanations)** to explain every individual prediction. Unlike global feature importance — which shows what the model relies on across all predictions on average — SHAP shows exactly how each input feature pushed the prediction up or down for a specific person.
+The `/predict` endpoint uses **SHAP (SHapley Additive exPlanations)** to
+explain every individual prediction. Unlike global feature importance —
+which shows what the model relies on across all predictions on average —
+SHAP shows exactly how each input feature pushed the prediction up or down
+for a specific person.
 
 - **Baseline** — the average prediction across the training dataset (starting point)
 - **Positive contribution** — pushed the prediction toward "likely to seek treatment"
