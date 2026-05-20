@@ -19,6 +19,14 @@ from xgboost import XGBClassifier
 from models.linear_model.logistic_regression import LogisticRegression
 from models.ensemble.bagging import ManualBaggingClassifier
 from cross_validation import cross_validate
+from plots import (
+    plot_roc_curves,
+    plot_confusion_matrix,
+    plot_learning_curve,
+    plot_feature_importance,
+    plot_cv_results,
+    plot_benchmark_summary,
+)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -172,3 +180,12 @@ joblib.dump(
 )
 
 print("\n✓ Saved to models/model.pkl — ready for the API.")
+
+# Phase 9. Plots
+lr_scratch = models["Logistic Regression"]
+plot_roc_curves(results, X_test, y_test)
+plot_confusion_matrix(results[best_name]["model"], X_test, y_test, best_name)
+plot_learning_curve(lr_scratch.loss_history, "Logistic Regression")
+plot_feature_importance(results, X_train.columns.tolist())
+plot_cv_results(results)
+plot_benchmark_summary(results)

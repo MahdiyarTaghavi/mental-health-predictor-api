@@ -3,3 +3,4 @@ env/
 /training_data
 /models
 /logs
+/outputs
