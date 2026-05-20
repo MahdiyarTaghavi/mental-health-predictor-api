@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay
 from pathlib import Path
@@ -54,11 +55,6 @@ def plot_confusion_matrix(model, X_test, y_test, model_name: str) -> None:
     model_name : str
         Name of the model for the plot title.
     """
-    # if hasattr(X_test, 'values'):
-    #     X_te = X_test.values
-    # else:
-    #     X_te = X_test
-
     y_pred = model.predict(X_test)
     cm = confusion_matrix(y_test, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["No Treatment", "Treatment"])
@@ -200,3 +196,17 @@ def plot_benchmark_summary(results: dict) -> None:
     for row in table_data:
         print(f"  {row[0]:<25} {row[1]:>10} {row[2]:>10} {row[3]:>10}")
     print(f"{'═' * 60}")
+
+def plot_all(models: dict, results: dict,
+              X_train: pd.DataFrame,
+              X_test: pd.DataFrame,
+              y_test: pd.Series,
+              best_name: dict
+              ) -> None:
+    lr_scratch = models["Logistic Regression"]
+    plot_roc_curves(results, X_test, y_test)
+    plot_confusion_matrix(results[best_name]["model"], X_test, y_test, best_name)
+    plot_learning_curve(lr_scratch.loss_history, "Logistic Regression")
+    plot_feature_importance(results, X_train.columns.tolist())
+    plot_cv_results(results)
+    plot_benchmark_summary(results)
