@@ -17,6 +17,7 @@ from sklearn.metrics import (
 from xgboost import XGBClassifier
 
 from models.linear_model.logistic_regression import LogisticRegression
+from models.ensemble.bagging import ManualBaggingClassifier
 from cross_validation import cross_validate
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -73,7 +74,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # Phase 5. Train & Compare Three Models
 models = {
-    # "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
     "Logistic Regression": LogisticRegression(learning_rate=0.01, epochs=1000),
     "Decision Tree": DecisionTreeClassifier(random_state=42),     # Intentionally untuned — default max_depth=None causes overfitting
     "Random Forest": RandomForestClassifier(n_estimators=200, random_state=42),
@@ -83,6 +83,7 @@ models = {
         eval_metric="logloss",
         random_state=42,
     ),
+    "Manual Bagging": ManualBaggingClassifier(n_estimators=100, random_state=42),
 }
 
 scaler = StandardScaler()
