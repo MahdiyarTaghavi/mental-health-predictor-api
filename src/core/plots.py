@@ -201,7 +201,7 @@ def plot_all(models: dict, results: dict,
               X_train: pd.DataFrame,
               X_test: pd.DataFrame,
               y_test: pd.Series,
-              best_name: dict
+              best_name: str
               ) -> None:
     lr_scratch = models["Logistic Regression"]
     plot_roc_curves(results, X_test, y_test)

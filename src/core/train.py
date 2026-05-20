@@ -1,5 +1,9 @@
+import sys
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Tuple
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 
 import pandas as pd
 import numpy as np
@@ -20,6 +24,7 @@ from xgboost import XGBClassifier
 from models.linear_model.logistic_regression import LogisticRegression
 from models.ensemble.bagging import ManualBaggingClassifier
 from cross_validation import cross_validate
+from tunings.tuning import tune_all
 from plots import plot_all
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -55,7 +60,35 @@ def _train_all(
     y_train: pd.Series,
     y_test: pd.Series,
 ) -> dict:
+    """
+    Train and evaluate all models on the given data.
 
+    Parameters
+    ----------
+    models : dict
+        Dictionary of model name to model instance.
+    X_train : pd.DataFrame
+        Training features.
+    X_test : pd.DataFrame
+        Test features.
+    y_train : pd.Series
+        Training labels.
+    y_test : pd.Series
+        Test labels.
+
+    Returns
+    -------
+    dict
+        Results keyed by model name, each containing:
+        - model : fitted model instance
+        - train_auc : float, AUC on training data
+        - test_auc : float, AUC on test data
+        - cv_mean : float, mean CV AUC across folds
+        - cv_std : float, standard deviation of CV AUC across folds
+    """
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
     results = {}
     for name, model in models.items():
 
@@ -106,6 +139,10 @@ def _train_all(
 
     return results
 
+def _pick_the_best_model(models: dict) -> Tuple[str, dict]:
+    best_name = max(models, key=lambda k: models[k]["test_auc"])
+    best_model = models[best_name]["model"]
+    return best_name, best_model
 
 if __name__ == "__main__":
 
@@ -162,23 +199,42 @@ if __name__ == "__main__":
         "Manual Bagging": ManualBaggingClassifier(n_estimators=100, random_state=42),
     }
 
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-
     results = _train_all(models, X_train, X_test, y_train, y_test)
 
-    # Phase 6. Pick the Best Model
-    best_name = max(results, key=lambda k: results[k]["test_auc"])
-    best_model = results[best_name]["model"]
-    print(f"\n✓ Best model: {best_name}  (AUC {results[best_name]["test_auc"]:.4f})")
+    # Phase 6. Pick the best baseline model
+    best_name, best_model = _pick_the_best_model(results)
+    print(f"\n✓ Best baseline model: {best_name}  (AUC {results[best_name]["test_auc"]:.4f})")
+
+    # Phase 7. Plots (Baseline)
+    plot_all(models, results, X_train, X_test, y_test, best_name)
+
+    # Phase 8. Hyperparameter Tuning
+    baseline_cv = {name: results[name]["cv_mean"] for name in results}
+    models = tune_all(X_train, y_train, baseline_cv)
+
+    # Phase 9. Re-evaluate Tuned Models
+    print("\n" + "═" * 50)
+    print("  Phase 9 — Tuned Models Evaluation")
+    print("═" * 50)
+
+    results = _train_all(models, X_train, X_test, y_train, y_test)
+    best_name, best_model = _pick_the_best_model(results)
+    print(f"\n✓ Best tuned model: {best_name}  (AUC {results[best_name]['test_auc']:.4f})")
+    plot_all(models, results, X_train, X_test, y_test, best_name)
 
     # Phase 7. Feature Importance (for the /predict API response)
     if hasattr(best_model, "feature_importances_"):
         importances = best_model.feature_importances_
-    else:
-        # Logistic Regression: use absolute coefficient as proxy
+    elif hasattr(best_model, "coef_"):
+        # Logistic Regression: use absolute coefficients as proxy
         importances = np.abs(best_model.coef_[0])
+    elif hasattr(best_model, "trees"):
+        # Manual Bagging: average feature importances across all trees
+        importances = np.mean(
+            [tree.feature_importances_ for tree in best_model.trees], axis=0
+        )
+    else:
+        importances = np.zeros(len(X.columns))
 
     feature_importance = dict(zip(X.columns.tolist(), importances.tolist()))
     top_features = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)[:5]
@@ -202,6 +258,3 @@ if __name__ == "__main__":
     )
 
     print("\n✓ Saved to models/model.pkl — ready for the API.")
-
-    # Phase 9. Plots
-    plot_all(models, results, X_train, X_test, y_test, best_name)
