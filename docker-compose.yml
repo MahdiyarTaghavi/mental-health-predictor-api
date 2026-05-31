@@ -2,7 +2,7 @@ services:
   train:
     image: mental-health-predictor
     working_dir: /app
-    command: python src/core/train.py
+    command: python src/core/ml/train.py
     volumes:
       - ./src:/app/src
       - ./training_data:/app/training_data

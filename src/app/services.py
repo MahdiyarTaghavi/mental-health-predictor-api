@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from fastapi import File, UploadFile
 
-from core.model import predict, model_name, auc, feature_importance
-from core.vision import analyze_emotion
+from core.ml.model import predict, model_name, auc, feature_importance
+from core.ml.vision import analyze_emotion
 from app.schemas import PredictRequest
 from utils.loggings.logger import app_log as log
 

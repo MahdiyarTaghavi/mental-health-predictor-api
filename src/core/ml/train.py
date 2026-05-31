@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from typing import Literal, Tuple
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 import pandas as pd
@@ -26,7 +26,7 @@ from cross_validation import cross_validate
 from tunings.tuning import tune_all
 from plots import plot_all
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[3]
 RANDOM_SEED = 42
 
 

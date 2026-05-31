@@ -3,9 +3,9 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
-from core.cross_validation import cross_validate
-from core.models.linear_model.logistic_regression import LogisticRegression
-from core.models.ensemble.bagging import ManualBaggingClassifier
+from core.ml.cross_validation import cross_validate
+from core.ml.models.linear_model.logistic_regression import LogisticRegression
+from core.ml.models.ensemble.bagging import ManualBaggingClassifier
 
 RANDOM_SEED = 42
 
