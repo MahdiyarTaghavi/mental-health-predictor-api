@@ -37,7 +37,7 @@ def plot_roc_curves(results: dict, X_test, y_test) -> None:
     plt.legend(loc="lower right")
     plt.tight_layout()
     plt.savefig(OUTPUTS_DIR / "roc_curves.png", dpi=150)
-    plt.show()
+    # plt.show()
 
 
 def plot_confusion_matrix(model, X_test, y_test, model_name: str) -> None:
@@ -64,7 +64,7 @@ def plot_confusion_matrix(model, X_test, y_test, model_name: str) -> None:
     ax.set_title(f"Confusion Matrix — {model_name}")
     plt.tight_layout()
     plt.savefig(OUTPUTS_DIR / "confusion_matrix.png", dpi=150)
-    plt.show()
+    # plt.show()
 
 
 def plot_learning_curve(loss_history: list, model_name: str) -> None:
@@ -85,7 +85,7 @@ def plot_learning_curve(loss_history: list, model_name: str) -> None:
     plt.title(f"Learning Curve — {model_name}")
     plt.tight_layout()
     plt.savefig(OUTPUTS_DIR / "learning_curve.png", dpi=150)
-    plt.show()
+    # plt.show()
 
 
 def plot_feature_importance(results: dict, feature_names: list) -> None:
@@ -116,7 +116,7 @@ def plot_feature_importance(results: dict, feature_names: list) -> None:
 
     plt.tight_layout()
     plt.savefig(OUTPUTS_DIR / "feature_importance.png", dpi=150)
-    plt.show()
+    # plt.show()
 
 
 def plot_cv_results(results: dict) -> None:
@@ -149,7 +149,7 @@ def plot_cv_results(results: dict) -> None:
 
     plt.tight_layout()
     plt.savefig(OUTPUTS_DIR / "cv_results.png", dpi=150)
-    plt.show()
+    # plt.show()
 
 
 def plot_benchmark_summary(results: dict) -> None:
@@ -187,7 +187,7 @@ def plot_benchmark_summary(results: dict) -> None:
 
     plt.tight_layout()
     plt.savefig(OUTPUTS_DIR / "benchmark_summary.png", dpi=150)
-    plt.show()
+    # plt.show()
 
     # Also print to console
     print(f"\n{'═' * 60}")
