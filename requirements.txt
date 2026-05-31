@@ -21,3 +21,4 @@ alembic==1.14.0
 pyjwt
 passlib
 pytest-asyncio
+pydantic_settings

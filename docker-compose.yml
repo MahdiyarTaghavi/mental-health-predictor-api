@@ -21,6 +21,8 @@ services:
       - ./training_data:/app/training_data
       - ./models:/app/models
       - ./logs:/var/logs/mental-health-predictor
+    env_file:
+      - ./environments/.env
     depends_on:
       train:
         condition: service_completed_successfully
