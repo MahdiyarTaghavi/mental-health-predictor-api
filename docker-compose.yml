@@ -9,6 +9,17 @@ services:
       - ./models:/app/models
     restart: "no"
 
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   mental-health-predictor-backend:
     image: mental-health-predictor
     container_name: mental-health-predictor-backend
@@ -26,3 +37,5 @@ services:
     depends_on:
       train:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
