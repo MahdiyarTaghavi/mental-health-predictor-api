@@ -225,7 +225,7 @@ if __name__ == "__main__":
 
     # Phase 6. Pick the best baseline model
     best_name, best_model = _pick_the_best_model(results)
-    print(f"\n✓ Best baseline model: {best_name}  (AUC {results[best_name]["test_auc"]:.4f})")
+    print(f"\n✓ Best baseline model: {best_name}  (AUC {results[best_name]['test_auc']:.4f})")
 
     # Phase 7. Plots (Baseline)
     plot_all(models, results, X_train, X_test, y_test, best_name)
