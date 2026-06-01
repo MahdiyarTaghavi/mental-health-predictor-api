@@ -4,3 +4,5 @@ env/
 /models
 /logs
 /outputs
+/src/alembic/README
+/src/alembic/script.py.mako

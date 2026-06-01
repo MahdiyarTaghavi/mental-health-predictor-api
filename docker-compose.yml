@@ -20,6 +20,43 @@ services:
       timeout: 5s
       retries: 5
 
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-mental_health}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    build: mental-health-predictor
+    command: alembic upgrade head
+    working_dir: /app/src
+    volumes:
+      - ./src:/app/src
+    env_file:
+      - ./environments/.env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    env_file:
+      - ./environments/.env
+    ports:
+      - "5050:80"
+
   mental-health-predictor-backend:
     image: mental-health-predictor
     container_name: mental-health-predictor-backend
@@ -39,3 +76,8 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:

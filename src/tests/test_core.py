@@ -1,4 +1,4 @@
-from core.model import predict
+from core.ml.model import predict
 
 
 VALID_INPUT = {

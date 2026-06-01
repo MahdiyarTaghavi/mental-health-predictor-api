@@ -7,14 +7,21 @@ class Settings(BaseSettings):
 
     REDIS_HOST: str
     REDIS_PORT: str
-    RATE_LIMIT_MAX_REQUESTS: str
-    RATE_LIMIT_WINDOW: str
+    RATE_LIMIT_MAX_REQUESTS: int
+    RATE_LIMIT_WINDOW: int
 
-    # POSTGRES_DB: str
-    # POSTGRES_USER: str
-    # POSTGRES_PASSWORD: str
-    # POSTGRES_HOST: str
-    # POSTGRES_PORT: str
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: str
+
+    @property
+    def database_url(self) -> str:
+        return (
+            f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
 @lru_cache()
 def get_settings() -> Settings:

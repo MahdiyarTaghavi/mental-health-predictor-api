@@ -1,14 +1,25 @@
 from fastapi import FastAPI, HTTPException
+from sqlalchemy import text
 
 from app.router import app_router
 from config import settings
 from core.middlewares.logging_context import log_request_context_middleware
 from core.middlewares.rate_limiter import RedisRateLimitMiddleware
+from db.database import engine
+
 app = FastAPI(
     title="Mental Health in Tech — Predictor API",
     description="Predicts whether a tech worker is likely to seek mental health treatment based on workplace and personal factors.",
     version="1.0.0",
 )
+
+@app.on_event("startup")
+async def startup():
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as e:
+        raise RuntimeError(f"Database connection failed: {e}")
 
 app.middleware("http")(log_request_context_middleware)
 
